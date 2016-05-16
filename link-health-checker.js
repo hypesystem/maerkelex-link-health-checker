@@ -11,9 +11,9 @@ request.get("http://mærkelex.dk/m.json", function(error, httpResponse, body) {
 	if(httpResponse.statusCode != 200) {
 		return console.error("Got non-200 on request for m.json", httpResponse.statusCode, body);
 	}
-	
+
 	debug("Succesfully got m.json");
-	
+
 	var data = JSON.parse(body);
 	var links = [];
 	data.m.map(function(maerke) {
@@ -28,9 +28,9 @@ request.get("http://mærkelex.dk/m.json", function(error, httpResponse, body) {
 			});
 		}
 	});
-	
+
 	debug("Parsed m.json into " + links.length + " links to be checked.");
-	
+
 	async.mapLimit(links, 5, function(link, callback) {
 		request.get(link.url, function(error, httpResponse, body) {
 			if(error) {
@@ -46,6 +46,13 @@ request.get("http://mærkelex.dk/m.json", function(error, httpResponse, body) {
 					link: link
 				});
 			}
+            if(link.url.indexOf("facebook.com") != -1) {
+                return callback(null, {
+                    healthy: false,
+                    message: "Unsure about this facebook.com link. It returns 200, but you never know...",
+                    link: link
+                });
+            }
 			callback(null, {
 				healthy: true,
 				link: link
